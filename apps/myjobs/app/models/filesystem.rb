@@ -51,7 +51,12 @@ class Filesystem
     rescue ArgumentError => e
       return false, "#{e.class} when testing path #{path} against whitelist: #{e.message}"
     end
-
+    #
+    # Exclude user's $HOME folder, avoid infinitely looped path rsynced, when the the DATAROOT is not set, or set to ~/ondemand/data/sys/myjobs/
+    #
+    if ENV['HOME'].to_s == Pathname.new(path).expand_path.realpath.to_s
+       return false, "Please DO NOT use your HOME folder as your Specified Source path! Try to use other paths, sub-paths, like ~/mywork, etc."
+    end
     # FIXME: consider using http://ruby-doc.org/stdlib-2.2.0/libdoc/timeout/rdoc/Timeout.html
     stdout, stderr, status = du(path, self.class.max_copy_safe_du_timeout_seconds)
     return false, MAX_COPY_TIMEOUT_MESSAGE if status.exitstatus == 124
