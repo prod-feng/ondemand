@@ -57,6 +57,10 @@ class Filesystem
     if ENV['HOME'].to_s == Pathname.new(path).expand_path.realpath.to_s
        return false, "Please DO NOT use your HOME folder as your Specified Source path! Try to use other paths, sub-paths, like ~/mywork, etc."
     end
+    #Check if the Source path is a subfolder of the OOD_DATAROOT. If so, stop it.
+    if Pathname.new(ENV['OOD_DATAROOT']).fnmatch?(File.join(path,'**'))
+       return false, "Please DO NOT use #{path} as the Source path! This will cause infinitive loop of files/paths copying when OOD stages the folder for your job. Please choose other path!"
+    end    
     # FIXME: consider using http://ruby-doc.org/stdlib-2.2.0/libdoc/timeout/rdoc/Timeout.html
     stdout, stderr, status = du(path, self.class.max_copy_safe_du_timeout_seconds)
     return false, MAX_COPY_TIMEOUT_MESSAGE if status.exitstatus == 124
